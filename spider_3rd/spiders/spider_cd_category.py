@@ -35,11 +35,11 @@ class SpiderCdSpider(scrapy.Spider):
 
     session = sessionmaker(bind=engine) 
     sess = session() 
-    Base = declarative_base() 
-    Base.metadata.schema = 'spider'
+    # Base = declarative_base() 
+    # Base.metadata.schema = 'spider'
     #动态创建orm类,必须继承Base, 这个表名是固定的,如果需要为每个爬虫创建一个表,请使用process_item中的
-    CategoryTask = type('task',(Base,TaskTemplate),{'__tablename__':'sp_plat_site_task'})
-    categorytasks = sess.query(CategoryTask.id, CategoryTask.category_link, CategoryTask.task_code, CategoryTask.plat, CategoryTask.site, CategoryTask.link_maxpage).filter(and_(CategoryTask.status == None, CategoryTask.plat == 'CD')).distinct()
+    # CategoryTask = type('task',(Base,TaskTemplate),{'__tablename__':'sp_plat_site_task'})
+    categorytasks = sess.query(CategoryTask.id, CategoryTask.category_link, CategoryTask.task_code, CategoryTask.plat, CategoryTask.site, CategoryTask.link_maxpage).filter(and_(CategoryTask.plat == 'CD')).distinct()
     # .limit(5)
     # .all()
     sess.close()
@@ -73,6 +73,10 @@ class SpiderCdSpider(scrapy.Spider):
             yield Request(url = t['url'], callback=self.parse, meta= t['meta'], headers = self.headers_html)
 
     def parse(self, response):
+        if response.status==202:
+            yield scrapy.Request(response.url, callback=self.parse, meta = response.meta, dont_filter=True)
+            return 
+
         id = response.meta['id']
         task_code = response.meta['task_code']
         plat = response.meta['plat']
@@ -83,6 +87,7 @@ class SpiderCdSpider(scrapy.Spider):
 
         item_cate_list = []
         item_rank_list = []
+        item_img_href_list = []
 
         count = 0
 
@@ -124,6 +129,11 @@ class SpiderCdSpider(scrapy.Spider):
 
             item_rank_list.append(item_rank)
 
+            item_img_href = item.copy()
+            item_img_href['imghref'] = d('img').attr('src')
+            item_img_href_list.append(item_img_href)
+
+        # yield {'data':item_img_href_list, 'type':'asin_img'}
         yield {'data':{'id': id, 'page': page},'type':'category_task'}
         yield {'data':item_cate_list,'type':'asin_task_add'}
         yield {'data':item_rank_list,'type':'asin_rank'}
