@@ -13,6 +13,7 @@ SPIDER_MODULES = ['spider_3rd.spiders']
 NEWSPIDER_MODULE = 'spider_3rd.spiders'
 
 
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'spider_3rd (+http://www.yourdomain.com)'
 
@@ -21,6 +22,14 @@ ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 5
+
+# 浏览器 控件地址
+driver_path = r'F:\zhangcrworkspace\23年1月\spider_3rd\spider_3rd\chromedriver'
+# chrome执行路径 无异常 不配置即可
+chrome_path = ''
+# 数据库环境
+db_env = 'test' # production
+# db_env = 'production'
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -53,6 +62,7 @@ CONCURRENT_REQUESTS = 5
 
 DOWNLOADER_MIDDLEWARES = {
    'spider_3rd.middlewares.Spider3RdDownloaderMiddleware': 543,
+   # 'spider_3rd.middlewares.Spider3RdDownloaderMiddlewareMuti': 543,
 }
 
 # Enable or disable extensions

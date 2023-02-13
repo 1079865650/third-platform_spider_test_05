@@ -4,7 +4,7 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+from settings import driver_path, chrome_path
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
@@ -61,7 +61,7 @@ class Spider3RdSpiderMiddleware:
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
 
-class Spider3RdDownloaderMiddlewareBak:
+class Spider3RdDownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
@@ -69,7 +69,7 @@ class Spider3RdDownloaderMiddlewareBak:
     def __init__(self):
 
         chrome_options = uc.ChromeOptions()
-        # chrome_options.add_argument('--blink-settings=imagesEnabled=false')
+        chrome_options.add_argument('--blink-settings=imagesEnabled=false')
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--disable-dev-shm-usage")
@@ -90,7 +90,10 @@ class Spider3RdDownloaderMiddlewareBak:
         # time.sleep(4)
         # chrome_options=Options()
         # chrome_options.add_experimental_option('debuggerAddress', '127.0.0.1:9222')
-        driver_path = r'F:\zhangcrworkspace\23年1月\spider_3rd\spider_3rd\chromedriver'            #把浏览器驱动器放在任意位置都可以
+        # driver_path = r'F:\zhangcrworkspace\23年1月\spider_3rd\spider_3rd\chromedriver'            #把浏览器驱动器放在任意位置都可以
+        if chrome_path != '':
+            options.binary_location = chrome_path  # 这里是你指定浏览器的路径
+
         self.driver = uc.Chrome(driver_executable_path=driver_path,options = chrome_options)
         # self.driver = webdriver.Chrome(executable_path=driver_path)
         # self.driver = webdriver.Chrome(executable_path=driver_path,options=chrome_options);
@@ -116,6 +119,26 @@ class Spider3RdDownloaderMiddlewareBak:
         
         # 我们需要拦截请求，由selenium发起请求，将获取的数据封装成一个response对象。
         self.driver.get(request.url)
+
+        if 'conforama' in request.url:
+            time.sleep(3)
+
+        time.sleep(1)
+        js1 = "window.scrollTo(0, 1000)"
+        self.driver.execute_script(js1)
+        time.sleep(1)
+        js1 = "window.scrollTo(0, 2000)"
+        self.driver.execute_script(js1)
+        time.sleep(1)
+        js1 = "window.scrollTo(0, 3000)"
+        self.driver.execute_script(js1)
+        time.sleep(1)
+        js1 = "window.scrollTo(0, 5000)"
+        self.driver.execute_script(js1)
+        time.sleep(1)
+
+        if 'conforama' in request.url:
+            time.sleep(3)
 
         if 'CAPTCHA' in self.driver.page_source:
             time.sleep(360)
@@ -156,7 +179,7 @@ from queue import Queue
 from scrapy.utils.project import get_project_settings
 import time
 
-class Spider3RdDownloaderMiddleware(object):
+class Spider3RdDownloaderMiddlewareMuti(object):
     def __init__(self):
         # Initialize browser
         chrome_options = uc.ChromeOptions()
@@ -181,7 +204,7 @@ class Spider3RdDownloaderMiddleware(object):
         # time.sleep(4)
         # chrome_options=Options()
         # chrome_options.add_experimental_option('debuggerAddress', '127.0.0.1:9222')
-        driver_path = r'F:\zhangcrworkspace\23年1月\spider_3rd\spider_3rd\chromedriver'            #把浏览器驱动器放在任意位置都可以
+        # driver_path = r'F:\zhangcrworkspace\23年1月\spider_3rd\spider_3rd\chromedriver'            #把浏览器驱动器放在任意位置都可以
         self.browser = uc.Chrome(driver_executable_path=driver_path,options = chrome_options)
         # self.driver = webdriver.Chrome(executable_path=driver_path)
         # self.driver = webdriver.Chrome(executable_path=driver_path,options=chrome_options);
@@ -264,18 +287,14 @@ class Spider3RdDownloaderMiddleware(object):
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
         s = cls()
-        help(s)
-        crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
+        # crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         crawler.signals.connect(s.spider_closed, signal=signals.spider_closed)
         return s
-
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
 
-
     def spider_closed(self, spider):
-        spider.logger.info('Spider opened: %s' % spider.name)
         self.browser.quit()
 
     def __del__(self):
