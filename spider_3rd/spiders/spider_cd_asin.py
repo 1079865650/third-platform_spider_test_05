@@ -66,9 +66,9 @@ class SpiderCdSpider(scrapy.Spider):
             yield Request(url = asin.href, callback=self.parse, meta={'id': asin.id, 'asin': asin.asin,'plat': asin.plat, 'site': asin.site}, headers = self.headers_html)
 
     def parse(self, response):
-        if response.status==202:
-            yield scrapy.Request(response.url, callback=self.parse, meta = response.meta, dont_filter=True)
-            return 
+        # if response.status==202:
+        #     yield scrapy.Request(response.url, callback=self.parse, meta = response.meta, dont_filter=True)
+        #     return
 
         id = response.meta['id']
         plat = response.meta['plat']

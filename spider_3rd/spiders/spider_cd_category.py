@@ -39,7 +39,7 @@ class SpiderCdSpider(scrapy.Spider):
     # Base.metadata.schema = 'spider'
     #动态创建orm类,必须继承Base, 这个表名是固定的,如果需要为每个爬虫创建一个表,请使用process_item中的
     # CategoryTask = type('task',(Base,TaskTemplate),{'__tablename__':'sp_plat_site_task'})
-    categorytasks = sess.query(CategoryTask.id, CategoryTask.category_link, CategoryTask.task_code, CategoryTask.plat, CategoryTask.site, CategoryTask.link_maxpage).filter(and_(CategoryTask.plat == 'CD')).distinct()
+    categorytasks = sess.query(CategoryTask.id, CategoryTask.category_link, CategoryTask.task_code, CategoryTask.plat, CategoryTask.site, CategoryTask.link_maxpage).filter(and_(CategoryTask.status == None, CategoryTask.plat == 'CD')).distinct()
     # .limit(5)
     # .all()
     sess.close()
@@ -73,9 +73,9 @@ class SpiderCdSpider(scrapy.Spider):
             yield Request(url = t['url'], callback=self.parse, meta= t['meta'], headers = self.headers_html)
 
     def parse(self, response):
-        if response.status==202:
-            yield scrapy.Request(response.url, callback=self.parse, meta = response.meta, dont_filter=True)
-            return 
+        # if response.status==202:
+        #     yield scrapy.Request(response.url, callback=self.parse, meta = response.meta, dont_filter=True)
+        #     return
 
         id = response.meta['id']
         task_code = response.meta['task_code']

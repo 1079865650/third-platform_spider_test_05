@@ -35,12 +35,12 @@ class SpiderManoSpider(scrapy.Spider):
 
     session = sessionmaker(bind=engine)
     sess = session()
-    Base = declarative_base()
-    Base.metadata.schema = 'spider'
+    # Base = declarative_base()
+    # Base.metadata.schema = 'spider'
     #动态创建orm类,必须继承Base, 这个表名是固定的,如果需要为每个爬虫创建一个表,请使用process_item中的
-    AsinTask = type('task',(Base,AsinTaskTemplate),{'__tablename__':'sp_plat_site_asin_info_task'})
-    AsinAtrr = type('task',(Base,AsinAttrTemplate),{'__tablename__':'sp_plat_site_asin_attr'})
-    asintasks = sess.query(AsinTask, AsinTask.id, AsinTask.asin, AsinTask.href, AsinTask.plat, AsinTask.site).outerjoin(AsinAtrr, and_(AsinTask.asin == AsinAtrr.asin, AsinTask.site == AsinAtrr.site)).filter(and_(AsinTask.status == None, AsinTask.plat == 'Mano', AsinAtrr.brand.is_(None))).distinct()
+    # AsinTask = type('task',(Base,AsinTaskTemplate),{'__tablename__':'sp_plat_site_asin_info_task'})
+    # AsinAtrr = type('task',(Base,AsinAttrTemplate),{'__tablename__':'sp_plat_site_asin_attr'})
+    asintasks = sess.query(AsinTask, AsinTask.id, AsinTask.asin, AsinTask.href, AsinTask.plat, AsinTask.site).outerjoin(AsinAttr, and_(AsinTask.asin == AsinAttr.asin, AsinTask.site == AsinAttr.site)).filter(and_(AsinTask.status == None, AsinTask.plat == 'Mano', AsinAttr.brand.is_(None))).distinct()
     # asintasks = sess.query(AsinTask, AsinTask.id, AsinTask.asin, AsinTask.href, AsinTask.plat, AsinTask.site).outerjoin(AsinAtrr, AsinTask.asin == AsinAtrr.asin, AsinTask.site == AsinAtrr.site)
     # .filter(and_(AsinTask.status == None, AsinTask.plat == 'CD', AsinAtrr.brand.is_(None))).distinct()
 
@@ -71,13 +71,17 @@ class SpiderManoSpider(scrapy.Spider):
             yield Request(url = asin.href, callback=self.parse, meta={'id': asin.id, 'asin': asin.asin,'plat': asin.plat, 'site': asin.site}, headers = self.headers_html)
 
     def parse(self, response):
+        # if response.status == 202:
+        #     yield scrapy.Request(response.url, callback=self.parse, meta = response.meta, dont_filter=True)
+        #     return
+
         id = response.meta['id']
         plat = response.meta['plat']
         site = response.meta['site']
         asin = response.meta['asin']
 
         doc = pq(response.text)
-        
+
         item_attr = {}
 
         item_attr['plat'] = plat
@@ -90,7 +94,7 @@ class SpiderManoSpider(scrapy.Spider):
         if 'discount à volonté' in doc('.fpCDAVLayerInfo.jsOverlay span').text():
             item_attr['sellertype'] = 'FBC'
 
-        item_attr['create_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+        item_attr['create_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         item_attr['update_time'] = item_attr['create_time']
 
         yield {'data':item_attr,'type':'asin_attr'}
