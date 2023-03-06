@@ -1,47 +1,32 @@
 import scrapy
-
+from sqlalchemy import create_engine, Column, Integer, TIMESTAMP, Float, String, Table, MetaData
+from sqlalchemy.ext.declarative import declarative_base
 from scrapy import Request
-
 from ..items import * 
-from ..db_utils import * 
-
-from sqlalchemy import create_engine,Column,Integer,TIMESTAMP,Float,String,Table,MetaData
-
+from ..db_utils import *
 from sqlalchemy.orm import sessionmaker
-
 from sqlalchemy import and_
-
 from pyquery import PyQuery as pq
 from datetime import datetime
 
-# update spider.sp_plat_site_task set task_code = replace(lower(site),'.','_') || '_' || category || '_' || replace(bsr_id,' ','_');
 
 class SpiderCdSpider(scrapy.Spider):
     name = 'spider_cd_asin'
-    # allowed_domains = ['www.cdiscount.com']
-    # start_urls = ['http://www.cdiscount.com/']
-
     custom_settings = {
-        'LOG_LEVEL': 'INFO', # 日志级别
-        'DOWNLOAD_DELAY' : 1,  # 抓取延迟
-        'CONCURRENT_REQUESTS':3,  # 并发限制
-        'DOWNLOAD_TIMEOUT':60 # 请求超时
+        'LOG_LEVEL': 'INFO',  # 日志级别
+        'DOWNLOAD_DELAY': 1,  # 抓取延迟
+        'CONCURRENT_REQUESTS': 3,  # 并发限制
+        'DOWNLOAD_TIMEOUT': 60  # 请求超时
     }
-
-    # engine = create_engine('postgresql+psycopg2://dbspider:Xr6!g9I%40p5@172.31.6.162:5432/bidata',echo=False)#连接数据库
-
-    engine = get_engine() #连接数据库
-
+    engine = get_engine()  # 连接数据库
     session = sessionmaker(bind=engine)
     sess = session()
-    
-    asintasks = sess.query(AsinTask, AsinTask.id, AsinTask.asin, AsinTask.href, AsinTask.plat, AsinTask.site).outerjoin(AsinAttr, and_(AsinTask.asin == AsinAttr.asin, AsinTask.site == AsinAttr.site)).filter(and_(AsinTask.status == None, AsinTask.plat == 'CD', AsinAttr.brand.is_(None))).distinct()
-    # asintasks = sess.query(AsinTask, AsinTask.id, AsinTask.asin, AsinTask.href, AsinTask.plat, AsinTask.site).outerjoin(AsinAtrr, AsinTask.asin == AsinAtrr.asin, AsinTask.site == AsinAtrr.site)
-    # .filter(and_(AsinTask.status == None, AsinTask.plat == 'CD', AsinAtrr.brand.is_(None))).distinct()
-
-    # .all()
+    asintasks = sess.query(AsinTask, AsinTask.id, AsinTask.asin, AsinTask.href
+                           , AsinTask.plat, AsinTask.site)\
+        .outerjoin(AsinAttr, and_(AsinTask.asin == AsinAttr.asin, AsinTask.site == AsinAttr.site))\
+        .filter(and_(AsinTask.status == None, AsinTask.plat == 'CD'))\
+        .distinct().limit(10)
     sess.close()
-
     headers_html = {
         'accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         'accept-Encoding': "gzip, deflate, br",
@@ -58,42 +43,35 @@ class SpiderCdSpider(scrapy.Spider):
         'sec-fetch-site': "same-origin",
         'sec-fetch-user': '?1',
         'upgrade-insecure-requests': '1',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+        # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36',
     }
 
     def start_requests(self):
         for asin in self.asintasks:
-            yield Request(url = asin.href, callback=self.parse, meta={'id': asin.id, 'asin': asin.asin,'plat': asin.plat, 'site': asin.site}, headers = self.headers_html)
+            yield Request(url=asin.href, callback=self.parse, meta={'id': asin.id, 'asin': asin.asin, 'plat': asin.plat, 'site': asin.site}, headers=self.headers_html)
 
     def parse(self, response):
         # if response.status==202:
         #     yield scrapy.Request(response.url, callback=self.parse, meta = response.meta, dont_filter=True)
         #     return
-
         id = response.meta['id']
         plat = response.meta['plat']
         site = response.meta['site']
         asin = response.meta['asin']
-
         doc = pq(response.text)
         
         item_attr = {}
-
         item_attr['plat'] = plat
         item_attr['site'] = site
         item_attr['asin'] = asin
-
         item_attr['seller'] = doc('.fpSellerName').text()
         item_attr['brand'] = item_attr['seller']
-
         if 'discount à volonté' in doc('.fpCDAVLayerInfo.jsOverlay span').text():
             item_attr['sellertype'] = 'FBC'
-
         item_attr['imghref'] = doc('.jsPictureZone a').attr('href')
-
-        item_attr['create_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+        item_attr['create_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         item_attr['update_time'] = item_attr['create_time']
 
-        yield {'data':item_attr,'type':'asin_attr'}
-
-        yield {'data':{'id': id},'type':'asin_task'}
+        yield {'data': item_attr, 'type': 'asin_attr'}
+        yield {'data': {'id': id}, 'type': 'asin_task'}
