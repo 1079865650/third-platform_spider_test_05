@@ -26,7 +26,7 @@ class SpiderCdSpider(scrapy.Spider):
     sess = session()
     categorytasks = sess.query(CategoryTask.id, CategoryTask.category_link, CategoryTask.task_code
                                , CategoryTask.plat, CategoryTask.site, CategoryTask.link_maxpage)\
-        .filter(and_(CategoryTask.plat == 'CD')).distinct()
+        .filter(and_(CategoryTask.plat == 'CD', CategoryTask.status == None)).distinct()
     sess.close()
     headers_html = {
         'accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
