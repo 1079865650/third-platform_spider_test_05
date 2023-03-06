@@ -27,7 +27,7 @@ class SpiderConforamaSpider(scrapy.Spider):
     sess = session()
     categorytasks = sess.query(CategoryTask.id, CategoryTask.category_link, CategoryTask.task_code
                                , CategoryTask.plat, CategoryTask.site, CategoryTask.link_maxpage) \
-        .filter(CategoryTask.plat == 'Conforama').distinct()
+        .filter(CategoryTask.plat == 'Conforama', CategoryTask.status == None).distinct()
     sess.close()
     headers_html = {
         'accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -53,8 +53,8 @@ class SpiderConforamaSpider(scrapy.Spider):
         print(self.categorytasks)
         count = 0
         for category in self.categorytasks[:5]:
-            # for page in range(1, category.link_maxpage+1):
-            for page in range(1, 5):
+            for page in range(1, category.link_maxpage+1):
+            # for page in range(1, 5):
                 task_list.append({"url": category.category_link + '&page=' + str(page),
                                   "meta": {'id': category.id, 'task_code': category.task_code,
                                            'plat': category.plat, 'site': category.site, 'page': page}})
