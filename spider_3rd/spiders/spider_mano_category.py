@@ -26,7 +26,7 @@ class SpiderManoSpider(scrapy.Spider):
     sess = session()
     categorytasks = sess.query(CategoryTask.id, CategoryTask.category_link, CategoryTask.task_code, CategoryTask.plat,
                                CategoryTask.site, CategoryTask.link_maxpage) \
-        .filter(and_(CategoryTask.plat == 'Mano')).distinct()
+        .filter(and_(CategoryTask.plat == 'Mano', CategoryTask.status == None)).distinct()
     sess.close()
     headers_html = {
         'accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -50,9 +50,9 @@ class SpiderManoSpider(scrapy.Spider):
     def start_requests(self):
         task_list = []
         count = 0
-        for category in self.categorytasks[15:20]:
-            # for page in range(1,category.link_maxpage+1):
-            for page in range(1, 4):
+        for category in self.categorytasks:
+            for page in range(1,category.link_maxpage+1):
+            # for page in range(1, 4):
                 task_list.append({"url": category.category_link + '?page=' + str(page),
                                   "meta": {'id': category.id, 'task_code': category.task_code,
                                             'plat': category.plat, 'site': category.site, 'page': page}})
