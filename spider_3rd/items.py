@@ -6,6 +6,7 @@
 import scrapy
 # orm 框架
 from sqlalchemy import create_engine,Column,Integer,TIMESTAMP,Float,String,Table,MetaData
+from sqlalchemy.ext.declarative import declarative_base
 
 class Spider3RdItem(scrapy.Item):
     # define the fields for your item here like:
@@ -82,8 +83,8 @@ class AsinAttr(Base):
     tag3 = Column(String(100))  # 标签3
     tag4 = Column(String(100))  # 标签4
     update_time = Column(TIMESTAMP) # 更新时间
-    imghref = Column(String(255)) #图片链接
-    
+    imghref = Column(String(255))  # 图片链接
+
 # '__tablename__':'sp_plat_site_asin_rank_cd'
 
 class AsinRankCD(Base):
@@ -130,7 +131,7 @@ class AsinRankMano(Base):
     page = Column(Integer) #页数
     sellertype = Column(String(10))  # 卖家类型
 
-class AsinRankConforame(Base):
+class AsinRankConforama(Base):
     __tablename__ = 'sp_plat_site_asin_rank_conforama'
     id = Column(Integer, primary_key=True)#主键自增
     plat = Column(String(50))  # 平台
@@ -151,6 +152,5 @@ class AsinRankConforame(Base):
     page_index = Column(Integer) # 页面排序
     page = Column(Integer) #页数
     sellertype = Column(String(10))  # 卖家类型
-
 
 
