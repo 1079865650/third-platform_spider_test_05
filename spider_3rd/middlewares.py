@@ -124,26 +124,26 @@ class Spider3RdDownloaderMiddleware:
         # 我们需要拦截请求，由selenium发起请求，将获取的数据封装成一个response对象。
         self.driver.get(request.url)
 
-        # if 'conforama' in request.url:
-        #     print("休眠了3秒======================")
-        #     time.sleep(3)
+        if 'conforama' in request.url:
+            print("休眠了3秒======================")
+            time.sleep(3)
         #
-        # time.sleep(1)
-        # js1 = "window.scrollTo(0, 1000)"
-        # self.driver.execute_script(js1)
-        # time.sleep(1)
-        # js1 = "window.scrollTo(0, 3000)"
-        # self.driver.execute_script(js1)
-        # time.sleep(1)
-        # js1 = "window.scrollTo(0, 5000)"
-        # self.driver.execute_script(js1)
-        # time.sleep(1)
-        # js1 = "window.scrollTo(0, 8000)"
-        # self.driver.execute_script(js1)
-        # time.sleep(1)
+        time.sleep(1)
+        js1 = "window.scrollTo(0, 1000)"
+        self.driver.execute_script(js1)
+        time.sleep(1)
+        js1 = "window.scrollTo(0, 3000)"
+        self.driver.execute_script(js1)
+        time.sleep(1)
+        js1 = "window.scrollTo(0, 5000)"
+        self.driver.execute_script(js1)
+        time.sleep(1)
+        js1 = "window.scrollTo(0, 8000)"
+        self.driver.execute_script(js1)
+        time.sleep(1)
         time.sleep(2)
-        # if 'conforama' in request.url:
-        #     time.sleep(3)
+        if 'conforama' in request.url:
+            time.sleep(3)
 
         if 'CAPTCHA' in self.driver.page_source:
             time.sleep(360)
@@ -175,9 +175,11 @@ class Spider3RdDownloaderMiddleware:
         spider.logger.info('Spider opened: %s' % spider.name)
 
     def spider_closed(self):
-        # self.driver.quit()
+        self.driver.quit()
         pass
-
+        
+    def __del__(self):
+        self.driver.quit()
 
 from scrapy.http.response.html import HtmlResponse
 from scrapy.exceptions import IgnoreRequest
