@@ -105,6 +105,8 @@ class SpiderCdSpider(scrapy.Spider):
             if 'discount à volonté' in d('.productCenterZone').text():
                 item_rank['sellertype'] = 'FBC'
 
+            item_rank_list.append(item_rank)
+
         yield {'data': {'id': id, 'page': page}, 'type': 'category_task'}
         yield {'data': item_cate_list, 'type': 'asin_task_add'}
         yield {'data': item_rank_list, 'type': 'asin_rank'}
