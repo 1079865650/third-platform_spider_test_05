@@ -25,7 +25,7 @@ class SpiderCdSpider(scrapy.Spider):
                            , AsinTask.plat, AsinTask.site)\
         .outerjoin(AsinAttr, and_(AsinTask.asin == AsinAttr.asin, AsinTask.site == AsinAttr.site))\
         .filter(and_(AsinTask.status == None, AsinTask.plat == 'CD'))\
-        .distinct().limit(10)
+        .distinct()
     sess.close()
     headers_html = {
         'accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
