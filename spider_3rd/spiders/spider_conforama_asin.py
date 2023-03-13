@@ -22,7 +22,7 @@ class SpiderConforamaSpider(scrapy.Spider):
     engine = get_engine()  # 连接数据库
     session = sessionmaker(bind=engine)
     sess = session()
-    asintasks = sess.query(AsinTask, AsinTask.id, AsinTask.asin, AsinTask.href, AsinTask.plat, AsinTask.site) \
+    asintasks = sess.query(AsinTask, AsinTask.id, AsinTask.asin, AsinTask.href, AsinTask.plat, AsinTask.site, AsinTask.sp_tag) \
         .outerjoin(AsinAttr, and_(AsinTask.asin == AsinAttr.asin, AsinTask.site == AsinAttr.site)) \
         .filter(and_(AsinTask.status == None, AsinTask.plat == 'Conforama')).distinct()
     sess.close()
@@ -51,7 +51,7 @@ class SpiderConforamaSpider(scrapy.Spider):
             count1 += 1
             print('开始第'+str(count1)+'链接')
             yield Request(url=asin.href, callback=self.parse,
-                          meta={'id': asin.id, 'asin': asin.asin, 'plat': asin.plat, 'site': asin.site},
+                          meta={'id': asin.id, 'asin': asin.asin, 'plat': asin.plat, 'site': asin.site, 'sp_tag': asin.sp_tag},
                           headers=self.headers_html)
 
     def parse(self, response):
@@ -62,6 +62,7 @@ class SpiderConforamaSpider(scrapy.Spider):
         plat = response.meta['plat']
         site = response.meta['site']
         asin = response.meta['asin']
+        sp_tag = response.meta['sp_tag'] 
         doc = pq(response.text)
 
         item_attr = {}
@@ -82,6 +83,8 @@ class SpiderConforamaSpider(scrapy.Spider):
         item_rank['rating'] = doc('button#ratings-summary div.bv_avgRating_component_container.notranslate').text()
         item_rank_list.append(item_rank)
 
+        item_attr['seller'] = sp_tag
+        item_attr['brand'] = sp_tag
         item_attr['site'] = site
         item_attr['seller'] = doc('span.confoNameColor').text()
         item_attr['brand'] = item_attr['seller']
